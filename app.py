@@ -384,3 +384,9 @@ with open("animation.json") as f:
     lottie_anim = json.load(f)
     
 st_lottie(lottie_anim, height=200)
+# Ajouter ce CSS
+.dark-mode {
+    background-color: #1e1e1e !important;
+    color: #f0f0f0 !important;
+}
+
