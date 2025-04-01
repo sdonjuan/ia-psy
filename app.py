@@ -169,4 +169,210 @@ st.markdown("---")
 st.caption("""
 ℹ️ Cet outil ne remplace pas un professionnel de santé.  
 En cas de détresse, contacte le [3114](https://www.3114.fr) (France) ou ton médecin.
-""")
+""")import streamlit as st
+import random
+from datetime import datetime
+import base64
+
+# ====================== #
+#    CONFIGURATION UI    #
+# ====================== #
+def setup_ui():
+    """Configuration cosmétique avancée"""
+    st.set_page_config(
+        page_title="Serena - Compagnon Émotionnel IA",
+        page_icon="🧠",
+        layout="wide",
+        initial_sidebar_state="collapsed"
+    )
+
+    # Injection CSS personnalisé
+    st.markdown(f"""
+    <style>
+        /* Fond d'écran subtil */
+        .stApp {{
+            background-image: url("data:image/svg+xml;base64,{base64.b64encode(open('background.svg', 'rb').read()).decode()}");
+            background-attachment: fixed;
+            background-size: cover;
+        }}
+        
+        /* Cartes de conversation */
+        .message-user {{
+            background: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%);
+            color: white;
+            border-radius: 18px 18px 0 18px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            max-width: 80%;
+            margin-left: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }}
+        
+        .message-ai {{
+            background: #ffffff;
+            color: #333;
+            border-radius: 18px 18px 18px 0;
+            padding: 12px 16px;
+            margin: 8px 0;
+            max-width: 80%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }}
+        
+        /* Zone de texte améliorée */
+        .stTextArea textarea {{
+            border-radius: 20px !important;
+            padding: 16px !important;
+            font-size: 16px !important;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }}
+        
+        /* Boutons modernes */
+        .stButton>button {{
+            border-radius: 20px !important;
+            padding: 10px 24px !important;
+            background: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%) !important;
+            color: white !important;
+            border: none !important;
+            font-weight: 500 !important;
+            transition: all 0.3s !important;
+        }}
+        
+        .stButton>button:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(106, 115, 247, 0.3) !important;
+        }}
+        
+        /* En-tête élégant */
+        .header {{
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+            margin-bottom: 2rem;
+        }}
+        
+        .title {{
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }}
+        
+        .subtitle {{
+            color: #666;
+            font-weight: 400;
+            font-size: 1.1rem;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+
+# ====================== #
+#      CORE FUNCTION     #
+# ====================== #
+def render_message(role, content):
+    """Affiche un message stylisé"""
+    if role == "user":
+        st.markdown(f'<div class="message-user">{content}</div>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div class="message-ai">{content}</div>', unsafe_allow_html=True)
+
+# ====================== #
+#       APPLICATION      #
+# ====================== #
+def main():
+    setup_ui()
+    
+    # En-tête élégant
+    st.markdown("""
+    <div class="header">
+        <div class="title">Serena</div>
+        <div class="subtitle">Votre compagnon émotionnel intelligent</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Colonnes pour une mise en page équilibrée
+    col1, col2 = st.columns([1, 3])
+    
+    with col1:
+        st.image("mindfulness.png", width=150)
+        st.caption("💡 Parlez librement comme à un ami bienveillant")
+        
+        with st.expander("📚 Ressources utiles"):
+            st.markdown("""
+            - **Urgence France** : 3114  
+            - **Écoute anonyme** : 0800 23 13 13  
+            - [Trouver un psy](https://annuaire.sante.fr)
+            """)
+    
+    with col2:
+        # Historique de conversation
+        if "history" not in st.session_state:
+            st.session_state.history = []
+            
+        # Affichage des messages
+        chat_placeholder = st.empty()
+        
+        with chat_placeholder.container():
+            for msg in st.session_state.history[-6:]:
+                render_message(msg["role"], msg["content"])
+                
+                # Affichage conditionnel des exercices
+                if msg.get("exercise"):
+                    with st.expander("💡 Exercice suggéré"):
+                        st.markdown(f"✨ *{msg['exercise']}*")
+        
+        # Zone de saisie moderne
+        with st.form("chat_form", clear_on_submit=True):
+            user_input = st.text_area("Votre message...", height=100, key="input")
+            
+            cols = st.columns([3, 1])
+            with cols[0]:
+                if st.form_submit_button("Envoyer", use_container_width=True):
+                    if user_input.strip():
+                        # Simulation réponse IA
+                        ai_response = generate_ai_response(user_input)
+                        
+                        # Ajout à l'historique
+                        timestamp = datetime.now().strftime("%H:%M")
+                        st.session_state.history.append({
+                            "role": "user",
+                            "content": user_input,
+                            "time": timestamp
+                        })
+                        
+                        st.session_state.history.append({
+                            "role": "ai",
+                            "content": ai_response["text"],
+                            "exercise": ai_response.get("exercise"),
+                            "time": timestamp
+                        })
+                        
+                        st.experimental_rerun()
+            
+            with cols[1]:
+                if st.form_submit_button("Effacer", type="secondary", use_container_width=True):
+                    st.session_state.history = []
+                    st.experimental_rerun()
+
+def generate_ai_response(user_input):
+    """Génère une réponse contextuelle (à remplacer par votre logique)"""
+    responses = {
+        "triste": {
+            "text": "Je ressens une profonde tristesse dans vos mots. Cette émotion est valide et mérite d'être entendue.",
+            "exercise": "Essayez l'écriture expressive : décrivez votre tristesse comme si c'était un paysage (couleur, forme, texture)."
+        },
+        # ... autres scénarios
+    }
+    
+    # Détection simplifiée (à améliorer)
+    if "triste" in user_input.lower():
+        return responses["triste"]
+    else:
+        return {
+            "text": "Je vous écoute avec attention. Pouvez-vous en dire plus sur ce que vous ressentez ?",
+            "exercise": None
+        }
+
+if __name__ == "__main__":
+    main()
