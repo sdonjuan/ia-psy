@@ -1,0 +1,5 @@
+# Ajouter ce CSS
+.dark-mode {
+    background-color: #1e1e1e !important;
+    color: #f0f0f0 !important;
+}
