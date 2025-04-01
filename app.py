@@ -375,4 +375,12 @@ def generate_ai_response(user_input):
         }
 
 if __name__ == "__main__":
-    main()
+    main() 
+    from streamlit_lottie import st_lottie
+import json
+
+# Charger une animation Lottie
+with open("animation.json") as f:
+    lottie_anim = json.load(f)
+    
+st_lottie(lottie_anim, height=200)
